@@ -1,31 +1,41 @@
-import { useEffect, useState } from 'react'
-import { db } from './config/firebase.js'
-import { collection, getDocs } from 'firebase/firestore'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from './hooks/useAuth'
+import LoginScreen from './screens/LoginScreen'
+import AdminDashboard from './screens/AdminDashboard'
+import ComercianteDashboard from './screens/ComercianteDashboard'
+import InicioScreen from './screens/InicioScreen'
+
+function RutaProtegida({ children, rolRequerido }) {
+  const { usuario, rol } = useAuthStore()
+  if (!usuario) return <Navigate to="/login" />
+  if (rolRequerido && rol !== rolRequerido) return <Navigate to="/login" />
+  return children
+}
 
 function App() {
-  const [conexion, setConexion] = useState('Verificando conexión...')
-
-  useEffect(() => {
-    const verificar = async () => {
-      try {
-        await getDocs(collection(db, 'test'))
-        setConexion('✅ Firebase conectado correctamente')
-      } catch (error) {
-        setConexion('❌ Error: ' + error.message)
-      }
-    }
-    verificar()
-  }, [])
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="text-center p-8 bg-white rounded-xl shadow">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          Mercado Abasto App
-        </h1>
-        <p className="text-gray-600">{conexion}</p>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<InicioScreen />} />
+        <Route path="/login" element={<LoginScreen />} />
+        <Route
+          path="/admin"
+          element={
+            <RutaProtegida rolRequerido="admin">
+              <AdminDashboard />
+            </RutaProtegida>
+          }
+        />
+        <Route
+          path="/comerciante"
+          element={
+            <RutaProtegida rolRequerido="comerciante">
+              <ComercianteDashboard />
+            </RutaProtegida>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
