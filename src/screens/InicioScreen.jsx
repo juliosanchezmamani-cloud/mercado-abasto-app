@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../hooks/useAuth'
-import { escucharPuestos, buscarProductos } from '../services/clienteService'
+
+import { escucharPuestos, buscarProductos, getSectoresMap } from '../services/clienteService'
 
 const CATEGORIAS = ['Todas', 'Aseo personal', 'Limpieza hogar', 'Alimentos', 'Bebidas', 'Otro']
 
@@ -16,6 +17,7 @@ export default function InicioScreen() {
   const navigate = useNavigate()
 
   const [puestos, setPuestos] = useState([])
+  const [mapaUbicaciones, setMapaUbicaciones] = useState({})
   const [busqueda, setBusqueda] = useState('')
   const [categoria, setCategoria] = useState('Todas')
   const [resultados, setResultados] = useState([])
@@ -25,14 +27,15 @@ export default function InicioScreen() {
   const [puestoDetalle, setPuestoDetalle] = useState(null)
 
   useEffect(() => {
-    if (!cargando) {
-      if (rol === 'admin') navigate('/admin')
-      else if (rol === 'comerciante') navigate('/comerciante')
+    if (!cargando && rol) {
+      if (rol === 'admin') navigate('/admin', { replace: true })
+      else if (rol === 'comerciante') navigate('/comerciante', { replace: true })
     }
   }, [cargando, rol, navigate])
 
   useEffect(() => {
     const unsub = escucharPuestos((data) => setPuestos(data))
+    getSectoresMap().then(setMapaUbicaciones)
     return () => unsub()
   }, [])
 
@@ -274,7 +277,12 @@ export default function InicioScreen() {
                     <div>
                       <p className="font-medium text-gray-800">{puesto.nombre || 'Sin nombre'}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {puesto.sectorId && `Sector ${puesto.sectorId}`}
+                        {puesto.sectorId && mapaUbicaciones[puesto.sectorId]
+                          ? `Sector ${mapaUbicaciones[puesto.sectorId]}`
+                          : ''}
+                        {puesto.pasilloId && mapaUbicaciones[`pasillo_${puesto.pasilloId}`]
+                          ? ` · Pasillo ${mapaUbicaciones[`pasillo_${puesto.pasilloId}`]}`
+                          : ''}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">

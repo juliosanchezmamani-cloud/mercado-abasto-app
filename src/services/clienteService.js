@@ -19,6 +19,21 @@ export const getProductosDePuesto = async (uid) => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
+export const getSectoresMap = async () => {
+  const { getDocs, collection } = await import('firebase/firestore')
+  const { db } = await import('../config/firebase')
+  const snap = await getDocs(collection(db, 'sectores'))
+  const mapa = {}
+  for (const docSector of snap.docs) {
+    mapa[docSector.id] = docSector.data().nombre
+    const pasillosSnap = await getDocs(collection(db, 'sectores', docSector.id, 'pasillos'))
+    pasillosSnap.docs.forEach(p => {
+      mapa[`pasillo_${p.id}`] = p.data().numero
+    })
+  }
+  return mapa
+}
+
 export const buscarProductos = async (termino, categoria) => {
   const puestosSnap = await getDocs(
     query(collection(db, 'users'), where('rol', '==', 'comerciante'))
@@ -49,4 +64,5 @@ export const buscarProductos = async (termino, categoria) => {
     })
   }
   return resultados
+
 }
