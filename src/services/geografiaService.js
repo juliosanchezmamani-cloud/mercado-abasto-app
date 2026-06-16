@@ -1,7 +1,7 @@
 import { db } from '../config/firebase'
 import {
   collection, addDoc, getDocs,
-  deleteDoc, doc, serverTimestamp
+  deleteDoc, doc, serverTimestamp, updateDoc
 } from 'firebase/firestore'
 
 export const getSectores = async () => {
@@ -36,4 +36,9 @@ export const addPasillo = async (sectorId, numero) => {
 
 export const deletePasillo = async (sectorId, pasilloId) => {
   await deleteDoc(doc(db, 'sectores', sectorId, 'pasillos', pasilloId))
+}
+
+export const updateSector = async (id, nombre) => {
+  const ref = doc(db, 'sectores', id)
+  await updateDoc(ref, { nombre })
 }

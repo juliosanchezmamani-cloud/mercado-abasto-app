@@ -67,7 +67,7 @@ export default function InicioScreen() {
 
   const ubicacionTexto = (puesto) => {
     const partes = []
-    if (puesto.sectorId && mapaUbicaciones[puesto.sectorId]) partes.push(`Sector ${mapaUbicaciones[puesto.sectorId]}`)
+    if (puesto.sectorId && mapaUbicaciones[puesto.sectorId]) partes.push(mapaUbicaciones[puesto.sectorId])
     if (puesto.pasilloId && mapaUbicaciones[`pasillo_${puesto.pasilloId}`]) partes.push(`Pasillo ${mapaUbicaciones[`pasillo_${puesto.pasilloId}`]}`)
     return partes.join(' · ')
   }

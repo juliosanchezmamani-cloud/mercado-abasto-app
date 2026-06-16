@@ -34,3 +34,8 @@ export const toggleActivarComerciante = async (uid, activo) => {
 export const deleteComerciante = async (uid) => {
   await deleteDoc(doc(db, 'users', uid))
 }
+
+export const updateComerciante = async (uid, datos) => {
+  const ref = doc(db, 'users', uid)
+  await updateDoc(ref, datos)
+}

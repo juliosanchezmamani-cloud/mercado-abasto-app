@@ -5,13 +5,12 @@ import {
   getSectores, addSector, deleteSector,
   getPasillos, addPasillo, deletePasillo
 } from '../services/geografiaService'
-import {
-  getComerciantes, crearComerciante, deleteComerciante
-} from '../services/usuariosService'
+import { updateSector } from '../services/geografiaService'
+import { getComerciantes, crearComerciante, deleteComerciante, updateComerciante } from '../services/usuariosService'
 import { getLogs } from '../services/auditService'
 import {
   ShieldCheck, LogOut, MapPin, Users, History,
-  Plus, Trash2, X, Layers, Store
+  Plus, Trash2, X, Layers, Store, Pencil
 } from 'lucide-react'
 
 const TABS = [
@@ -37,6 +36,17 @@ export default function AdminDashboard() {
     nombre: '', email: '', password: '', sectorId: '', pasilloId: ''
   })
   const [pasillosForm, setPasillosForm] = useState([])
+
+  // Edición de sector
+  const [editandoSector, setEditandoSector] = useState(null)
+  const [nombreSectorEdit, setNombreSectorEdit] = useState('')
+
+  // Edición de comerciante
+  const [editandoComerciante, setEditandoComerciante] = useState(null)
+  const [formEditComerciante, setFormEditComerciante] = useState({
+    nombre: '', sectorId: '', pasilloId: ''
+  })
+  const [pasillosEditForm, setPasillosEditForm] = useState([])
 
   const [logs, setLogs] = useState([])
 
@@ -130,6 +140,36 @@ export default function AdminDashboard() {
     edicion_producto: 'Edición de producto',
   }
 
+  const handleEditSector = async () => {
+    if (!nombreSectorEdit.trim()) return
+    await updateSector(editandoSector.id, nombreSectorEdit.trim())
+    setEditandoSector(null)
+    setNombreSectorEdit('')
+    await cargarSectores()
+  }
+
+  const abrirEditComerciante = async (c) => {
+    setEditandoComerciante(c)
+    setFormEditComerciante({ nombre: c.nombre, sectorId: c.sectorId || '', pasilloId: c.pasilloId || '' })
+    if (c.sectorId) {
+      const data = await getPasillos(c.sectorId)
+      setPasillosEditForm(data)
+    }
+  }
+
+  const handleEditComerciante = async () => {
+    if (!formEditComerciante.nombre.trim()) return
+    setCargando(true)
+    await updateComerciante(editandoComerciante.id, {
+      nombre: formEditComerciante.nombre.trim(),
+      sectorId: formEditComerciante.sectorId,
+      pasilloId: formEditComerciante.pasilloId,
+    })
+    setEditandoComerciante(null)
+    await cargarComerciantes()
+    setCargando(false)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -192,10 +232,16 @@ export default function AdminDashboard() {
                       sectorSeleccionado?.id === sector.id ? 'border-emerald-700 bg-emerald-50' : 'border-gray-100 hover:border-gray-200'
                     }`}>
                     <span className="text-sm font-medium text-gray-700">{sector.nombre}</span>
-                    <button onClick={(e) => { e.stopPropagation(); handleDeleteSector(sector.id) }}
-                      className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button onClick={(e) => { e.stopPropagation(); setEditandoSector(sector); setNombreSectorEdit(sector.nombre) }}
+                        className="p-1.5 text-gray-300 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
+                        <Pencil size={14} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDeleteSector(sector.id) }}
+                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -274,10 +320,16 @@ export default function AdminDashboard() {
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${ESTADO_STYLES[c.estado] || 'bg-gray-100 text-gray-500'}`}>
                       {c.estado || 'cerrado'}
                     </span>
-                    <button onClick={() => deleteComerciante(c.id).then(cargarComerciantes)}
-                      className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button onClick={() => abrirEditComerciante(c)}
+                        className="p-1.5 text-gray-300 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors">
+                        <Pencil size={15} />
+                      </button>
+                      <button onClick={() => deleteComerciante(c.id).then(cargarComerciantes)}
+                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -375,6 +427,78 @@ export default function AdminDashboard() {
         </div>
       )}
 
+{/* Modal editar sector */}
+      {editandoSector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Editar sector</h3>
+              <button onClick={() => setEditandoSector(null)} className="text-gray-300 hover:text-gray-500">
+                <X size={20} />
+              </button>
+            </div>
+            <input type="text" value={nombreSectorEdit}
+              onChange={(e) => setNombreSectorEdit(e.target.value)}
+              className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-emerald-700 mb-4" />
+            <div className="flex gap-2">
+              <button onClick={() => setEditandoSector(null)}
+                className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
+                Cancelar
+              </button>
+              <button onClick={handleEditSector}
+                className="flex-1 bg-emerald-800 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-emerald-900">
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal editar comerciante */}
+      {editandoComerciante && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Editar comerciante</h3>
+              <button onClick={() => setEditandoComerciante(null)} className="text-gray-300 hover:text-gray-500">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="flex flex-col gap-3">
+              <input type="text" placeholder="Nombre completo" value={formEditComerciante.nombre}
+                onChange={(e) => setFormEditComerciante({ ...formEditComerciante, nombre: e.target.value })}
+                className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700" />
+              <select value={formEditComerciante.sectorId}
+                onChange={async (e) => {
+                  setFormEditComerciante({ ...formEditComerciante, sectorId: e.target.value, pasilloId: '' })
+                  const data = await getPasillos(e.target.value)
+                  setPasillosEditForm(data)
+                }}
+                className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700">
+                <option value="">Seleccioná un sector</option>
+                {sectores.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+              </select>
+              <select value={formEditComerciante.pasilloId}
+                onChange={(e) => setFormEditComerciante({ ...formEditComerciante, pasilloId: e.target.value })}
+                className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                disabled={!formEditComerciante.sectorId}>
+                <option value="">Seleccioná un pasillo</option>
+                {pasillosEditForm.map(p => <option key={p.id} value={p.id}>Pasillo {p.numero}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setEditandoComerciante(null)}
+                className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
+                Cancelar
+              </button>
+              <button onClick={handleEditComerciante} disabled={cargando}
+                className="flex-1 bg-emerald-800 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-emerald-900 disabled:opacity-50">
+                {cargando ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
