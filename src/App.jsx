@@ -4,6 +4,7 @@ import LoginScreen from './screens/LoginScreen'
 import AdminDashboard from './screens/AdminDashboard'
 import ComercianteDashboard from './screens/ComercianteDashboard'
 import InicioScreen from './screens/InicioScreen'
+import NotFoundScreen from './screens/NotFoundScreen'
 
 function RutaProtegida({ children, rolRequerido }) {
   const { usuario, rol } = useAuthStore()
@@ -34,6 +35,7 @@ function App() {
             </RutaProtegida>
           }
         />
+        <Route path="*" element={<NotFoundScreen />} />
       </Routes>
     </BrowserRouter>
   )

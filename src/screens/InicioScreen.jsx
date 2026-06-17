@@ -216,7 +216,7 @@ export default function InicioScreen() {
 
       <div className="max-w-4xl mx-auto p-4 sm:p-6 flex flex-col gap-6">
 
-        {/* Búsqueda */}
+        {/* para buscarrrr */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
           <div className="flex gap-2 mb-3">
             <div className="relative flex-1">
@@ -255,7 +255,15 @@ export default function InicioScreen() {
           </div>
         </div>
 
-        {/* Resultados de búsqueda */}
+        
+        {/* Resultadooo busqueda */}
+        {busqueda.trim() !== '' && !buscando && resultados.length === 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center">
+            <Search className="text-gray-300 mb-2" size={36} />
+            <p className="text-gray-500 text-sm font-medium">Sin resultados para "{busqueda}"</p>
+            <p className="text-gray-400 text-xs mt-1">Probá con otro nombre o categoría</p>
+          </div>
+        )}
         {resultados.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 px-1">

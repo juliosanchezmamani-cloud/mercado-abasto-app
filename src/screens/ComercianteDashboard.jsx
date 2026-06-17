@@ -128,7 +128,9 @@ export default function ComercianteDashboard() {
             <Store className="text-white" size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-800 leading-tight">Mi Tienda</h1>
+            <h1 className="text-lg font-bold text-gray-800 leading-tight">
+            {datosComercante?.nombre || 'Mi Tienda'}
+            </h1>
             <div className="flex items-center gap-1.5">
               <div className={`w-2 h-2 rounded-full ${semaforo.color}`} />
               <span className={`text-xs font-medium ${semaforo.textoColor}`}>
